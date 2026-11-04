@@ -51,6 +51,7 @@ function render() {
   $('session').textContent = session.active ? 'End stream' : 'Start stream';
   $('session').classList.toggle('live', session.active);
 
+  if (document.activeElement !== $('league')) $('league').value = state.league ?? 'great';
   renderSlots();
 }
 
@@ -142,6 +143,7 @@ $('session').onclick = () => {
   if (state.session.active) { if (confirm('End stream session? (resets "today" ELO delta)')) op({ op: 'session.end' }); }
   else op({ op: 'session.start' });
 };
+$('league').onchange = (e) => op({ op: 'league.set', league: e.target.value });
 $('eloForm').onsubmit = (e) => { e.preventDefault(); op({ op: 'elo.set', value: Number($('eloInput').value) }).then(() => { $('eloInput').value = ''; }); };
 document.addEventListener('keydown', (e) => {
   if (e.target.closest('input, select, textarea')) return;
@@ -166,7 +168,7 @@ function renderSpotify(sp) {
 $('spotifyLogout').onclick = () => api('/api/spotify/logout');
 
 // ---- OBS sources ----
-const SOURCES = [['scene', 1920, 1080, 'All widgets, top-right'], ['background', 1920, 1080, 'Type-themed backdrop'], ['elo', 360, 140], ['record', 300, 160], ['team', 440, 200], ['analysis', 440, 120], ['spotify', 480, 110]];
+const SOURCES = [['scene', 1920, 1080, 'All widgets, top-right'], ['background', 1920, 1080, 'Type-themed backdrop'], ['elo', 360, 140], ['record', 300, 160], ['team', 440, 200], ['analysis', 440, 420], ['spotify', 480, 110]];
 $('sources').replaceChildren(...SOURCES.map(([n, w, h, note]) => {
   const url = `${location.origin.replace('localhost', '127.0.0.1')}/overlay/${n}`;
   const copy = el('button', { className: 'mini', textContent: 'Copy' });

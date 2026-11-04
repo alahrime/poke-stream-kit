@@ -2,6 +2,7 @@
 export const VERSION = 1;
 const SET_SIZE = 5;
 const UNDO_LIMIT = 30;
+export const LEAGUES = ['great', 'ultra', 'master'];
 
 export class OpError extends Error {
   constructor(code, message) { super(message); this.code = code; }
@@ -16,6 +17,7 @@ export function initialState() {
     session: { active: false, startElo: null, startedAt: null },
     record: { wins: 0, losses: 0, history: [] },
     team: { name: '', members: [] },
+    league: 'great',
   };
 }
 
@@ -49,6 +51,7 @@ export function migrate(raw) {
         ? team.members.filter((m) => isInt(m?.id, 1, 99999)).slice(0, 3).map((m) => ({ id: m.id, shadow: m.shadow === true }))
         : [],
     },
+    league: LEAGUES.includes(r.league) ? r.league : base.league,
   };
   if (s.record.wins + s.record.losses > SET_SIZE) s.record = { ...base.record, history: s.record.history };
   return s;
@@ -102,6 +105,10 @@ export function applyOp(state, cmd, ctx) {
     case 'team.set':
       s.team.members = parseMembers(cmd.members, ctx);
       s.team.name = typeof cmd.name === 'string' ? cmd.name.slice(0, 40) : '';
+      break;
+    case 'league.set':
+      if (!LEAGUES.includes(cmd.league)) throw invalid(`league must be one of ${LEAGUES.join(', ')}`);
+      s.league = cmd.league;
       break;
     default:
       throw invalid(`unknown op ${String(cmd?.op).slice(0, 40)}`);

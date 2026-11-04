@@ -1,1 +1,21 @@
-{ "teams": [] }
+{
+  "teams": [
+    {
+      "name": "GL Core",
+      "members": [
+        {
+          "id": 10180,
+          "shadow": false
+        },
+        {
+          "id": 184,
+          "shadow": false
+        },
+        {
+          "id": 308,
+          "shadow": true
+        }
+      ]
+    }
+  ]
+}

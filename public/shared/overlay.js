@@ -6,6 +6,14 @@ const $ = (tag, cls, text) => { const e = document.createElement(tag); if (cls) 
 const bump = (el) => { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); };
 const typeChip = (t) => { const c = $('span', 'type', t); c.style.background = TYPE_COLORS[t] ?? '#666'; return c; };
 
+const LEAGUE_LABEL = { great: 'GREAT', ultra: 'ULTRA', master: 'MASTER' };
+// Battle rating 0-1000 (500 = even): red -> amber -> green.
+const ratingChip = (r) => { const c = $('span', 'rating', String(r)); c.style.background = `hsl(${Math.round(r / 1000 * 120)} 70% 38%)`; return c; };
+const monIcon = (m) => {
+  if (!m.id && !m.sprite) return $('span', 'abbr', m.name.slice(0, 3));
+  const img = $('img', `icon${m.shadow ? ' shadow' : ''}`); img.src = m.sprite ?? `/sprite/${m.id}`; img.alt = m.name; return img;
+};
+
 const widgets = {
   elo: {
     mount(root) {
@@ -73,16 +81,39 @@ const widgets = {
   analysis: {
     mount(root) {
       const card = $('div', 'card analysis');
-      card.append($('div', 'label', 'TEAM WEAK TO'), $('div', 'chips'), $('div', 'notes'));
+      card.append($('div', 'label', 'TEAM WEAK TO'), $('div', 'chips'), $('div', 'sim'), $('div', 'threats'), $('table', 'matrix'), $('div', 'notes'));
       root.append(card);
       return card;
     },
     update(card, { state, analysis }) {
       if (!state) return;
-      const ext = analysis && analysis.teamHash === state.teamHash ? analysis : null;
-      const list = ext ? ext.weaknesses : state.weaknesses;
+      const league = state.league ?? 'great';
+      const ext = analysis && analysis.teamHash === state.teamHash && (analysis.league ?? league) === league ? analysis : null;
+      const list = ext?.weaknesses ?? state.weaknesses;
       card.hidden = !state.team.view.length;
+      card.querySelector('.label').textContent = `${LEAGUE_LABEL[league] ?? league.toUpperCase()} · TEAM WEAK TO`;
       card.querySelector('.chips').replaceChildren(...(list.length ? list.map((w) => typeChip(w.type)) : [$('span', 'muted', 'No shared weaknesses')]));
+      card.querySelector('.sim').textContent = ext?.winRate != null ? `Sim win rate ${Math.round(ext.winRate * 100)}%` : '';
+      const threats = ext?.threats ?? [];
+      card.querySelector('.threats').replaceChildren(...(threats.length ? [$('div', 'label', 'TOP THREATS')] : []), ...threats.slice(0, 5).map((t) => {
+        const row = $('div', 'threat');
+        row.append(monIcon(t), $('span', 'name', (t.shadow ? 'Shadow ' : '') + t.name));
+        if (t.beatShare != null) row.append($('span', 'stat', `beats ${Math.round(t.beatShare * 100)}%`));
+        else if (t.rating != null) row.append(ratingChip(t.rating));
+        return row;
+      }));
+      const table = card.querySelector('.matrix');
+      const mx = ext?.matrix;
+      table.hidden = !mx;
+      if (!mx) return table.replaceChildren();
+      const head = $('tr');
+      head.append($('th', 'muted', '1-1'), ...mx.foes.map((f) => { const th = $('th'); th.append(monIcon(f)); th.title = f.name; return th; }));
+      table.replaceChildren(head, ...mx.ratings.map((row, i) => {
+        const tr = $('tr'), th = $('th'), me = state.team.view[i];
+        if (me) th.append(monIcon(me));
+        tr.append(th, ...row.map((c) => { const td = $('td'); td.append(ratingChip(c[1])); return td; }));
+        return tr;
+      }));
       card.querySelector('.notes').textContent = ext?.notes ?? '';
     },
   },
@@ -146,9 +177,26 @@ const DEMO = {
     ] },
     theme: { vars: { '--accent': TYPE_COLORS.water, '--accent-2': TYPE_COLORS.steel } },
     weaknesses: [{ type: 'ground' }],
+    league: 'great',
   },
   spotify: { status: 'playing', at: Date.now(), track: { title: 'Victory Road (Lo-fi)', artists: 'Stream Beats', progressMs: 42000, durationMs: 180000, art: null } },
-  analysis: null,
+  analysis: {
+    teamHash: 'demo', league: 'great', source: 'paragon2', notes: 'Lead Stunfisk; save Medicham for Azumarill.', winRate: 0.58,
+    weaknesses: [{ type: 'fighting', severity: 2 }, { type: 'ground', severity: 1 }],
+    threats: [
+      { name: 'Lickitung', id: 108, shadow: false, beatShare: 0.47 },
+      { name: 'Swampert', id: 260, shadow: true, beatShare: 0.41 },
+      { name: 'Registeel', id: 379, shadow: false, beatShare: 0.33 },
+    ],
+    matrix: {
+      foes: [{ name: 'Lickitung', id: 108, shadow: false }, { name: 'Swampert', id: 260, shadow: true }, { name: 'Registeel', id: 379, shadow: false }, { name: 'Bastiodon', id: 411, shadow: false }],
+      ratings: [
+        [[402, 455, 520], [318, 362, 430], [612, 655, 701], [702, 744, 760]],
+        [[486, 512, 540], [356, 402, 470], [441, 478, 530], [598, 611, 640]],
+        [[655, 700, 732], [544, 590, 612], [612, 640, 690], [720, 760, 802]],
+      ],
+    },
+  },
 };
 
 export function boot(names) {

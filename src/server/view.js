@@ -6,7 +6,7 @@ import { teamHash } from './store.js';
 export function buildView(state, dex) {
   const view = state.team.members.map((m) => {
     const p = dex.get(m.id);
-    return { id: m.id, name: p?.d ?? `#${m.id}`, types: p?.t ?? [], shadow: m.shadow, sprite: `/sprite/${m.id}` };
+    return { id: m.id, name: p?.d ?? `#${m.id}`, slug: p?.n ?? null, types: p?.t ?? [], shadow: m.shadow, sprite: `/sprite/${m.id}` };
   });
   const { current } = state.elo;
   const { active, startElo } = state.session;

@@ -50,6 +50,19 @@ body { font-family: var(--font); color: var(--text); -webkit-font-smoothing: ant
 .analysis .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .analysis .type { font-size: 13px; padding: 3px 10px; }
 .analysis .notes { font-size: 13px; color: var(--muted); margin-top: 4px; max-width: 380px; }
+.analysis .notes:empty, .analysis .sim:empty, .analysis .threats:empty { display: none; }
+.analysis .sim { font-size: 14px; font-weight: 700; margin-top: 6px; }
+.analysis .threats { margin-top: 8px; }
+.analysis .threat { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 2px; }
+.analysis .threat .name { font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.analysis .threat .stat { color: var(--muted); font-variant-numeric: tabular-nums; }
+.analysis .icon { width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.analysis .icon.shadow { filter: drop-shadow(0 0 4px #a040ff); }
+.analysis .abbr { display: inline-block; width: 32px; font-size: 11px; font-weight: 800; text-transform: uppercase; text-align: center; color: var(--muted); }
+.analysis .matrix { border-collapse: collapse; margin-top: 8px; }
+.analysis .matrix th { font-size: 11px; font-weight: 700; padding: 0 2px; }
+.analysis .matrix td { padding: 2px; text-align: center; }
+.analysis .rating { display: inline-block; min-width: 36px; font-size: 12px; font-weight: 800; padding: 2px 4px; border-radius: 6px; color: #fff; font-variant-numeric: tabular-nums; }
 
 .spotify { display: flex; gap: 12px; align-items: center; width: 440px; box-sizing: border-box; }
 .spotify.paused { opacity: .6; }

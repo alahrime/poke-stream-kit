@@ -15,7 +15,7 @@ test('buildView enriches team, theme, weaknesses, elo delta', () => {
   s.team.members = [{ id: 184, shadow: true }];
   s.elo.current = 2550; s.session = { active: true, startElo: 2500, startedAt: 1 };
   const v = buildView(s, dex);
-  assert.deepEqual(v.team.view[0], { id: 184, name: 'Azumarill', types: ['water', 'fairy'], shadow: true, sprite: '/sprite/184' });
+  assert.deepEqual(v.team.view[0], { id: 184, name: 'Azumarill', slug: 'azumarill', types: ['water', 'fairy'], shadow: true, sprite: '/sprite/184' });
   assert.equal(v.theme.primary, 'water');
   assert.equal(v.elo.delta, 50);
   assert.ok(Array.isArray(v.weaknesses));

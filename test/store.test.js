@@ -79,3 +79,21 @@ test('Store: undo restores previous state, persists via save hook', () => {
   assert.equal(st.state.record.wins, 0);
   assert.throws(() => st.apply({ op: 'undo' }), { code: 'NOTHING_TO_UNDO' });
 });
+
+test('league.set: great/ultra/master only, defaults to great, undoable', () => {
+  assert.equal(initialState().league, 'great');
+  assert.equal(run([{ op: 'league.set', league: 'ultra' }]).league, 'ultra');
+  for (const league of ['little', '', undefined, 'ULTRA']) {
+    assert.throws(() => run([{ op: 'league.set', league }]), /league/);
+  }
+  const store = new Store({ state: initialState(), ctx });
+  store.apply({ op: 'league.set', league: 'master' });
+  store.apply({ op: 'undo' });
+  assert.equal(store.state.league, 'great');
+});
+
+test('migrate keeps a valid league and resets garbage to great', () => {
+  assert.equal(migrate({ league: 'master' }).league, 'master');
+  assert.equal(migrate({ league: 'premier' }).league, 'great');
+  assert.equal(migrate(null).league, 'great');
+});

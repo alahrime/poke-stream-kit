@@ -93,3 +93,22 @@ test('analysis endpoint drops stale team hashes', async () => {
   assert.equal((await post('/api/analysis', { teamHash: 'stale', weaknesses: [] })).status, 409);
   assert.equal((await post('/api/analysis', { teamHash: '184', weaknesses: [{ type: 'grass' }] })).status, 200);
 });
+
+test('league.set via op and hotkey; view carries league and member slug', async () => {
+  const r = await post('/api/op', { op: 'league.set', league: 'ultra' });
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).league, 'ultra');
+  assert.equal((await post('/api/op', { op: 'league.set', league: 'little' })).status, 400);
+  assert.equal((await fetch(`${base}/api/hotkey?op=league.set&league=master&token=${TOKEN}`)).status, 200);
+  assert.equal((await fetch(`${base}/api/hotkey?op=league.set&league=nope&token=${TOKEN}`)).status, 400);
+  const v = await (await post('/api/op', { op: 'team.set', members: [{ id: 10180 }] })).json();
+  assert.equal(v.league, 'master');
+  assert.equal(v.team.view[0].slug, 'stunfisk-galar');
+});
+
+test('analysis endpoint rejects a league that is not current', async () => {
+  await post('/api/op', { op: 'team.set', members: [{ id: 184 }] });
+  await post('/api/op', { op: 'league.set', league: 'great' });
+  assert.equal((await post('/api/analysis', { teamHash: '184', league: 'ultra', winRate: 0.5 })).status, 409);
+  assert.equal((await post('/api/analysis', { teamHash: '184', league: 'great', winRate: 0.5 })).status, 200);
+});

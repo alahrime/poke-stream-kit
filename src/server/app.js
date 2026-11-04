@@ -6,7 +6,7 @@ import { join, resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from './config.js';
 import { loadJson, saveJsonAtomic, debouncedSaver } from './persist.js';
-import { Store, migrate, parseMembers, OpError } from './store.js';
+import { Store, migrate, parseMembers, OpError, teamHash } from './store.js';
 import { buildView } from './view.js';
 import { Bus } from './bus.js';
 import { Sprites } from './sprites.js';
@@ -17,7 +17,7 @@ import { Paragon2 } from '../integrations/paragon2.js';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const PUBLIC = join(ROOT, 'public');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
-const HOTKEY_OPS = new Set(['record.win', 'record.loss', 'record.endSet', 'undo', 'session.start', 'session.end']);
+const HOTKEY_OPS = new Set(['record.win', 'record.loss', 'record.endSet', 'undo', 'session.start', 'session.end', 'league.set']);
 const MAX_BODY = 64 * 1024;
 
 export async function createApp({ configDir = join(ROOT, 'config'), dataDir = join(ROOT, 'data'), overrides, fetchImpl = fetch } = {}) {
@@ -35,7 +35,8 @@ export async function createApp({ configDir = join(ROOT, 'config'), dataDir = jo
   const saveState = debouncedSaver(statePath);
   const secrets = loadJson(secretsPath, {});
 
-  const paragon2 = new Paragon2({ cfg, publish: (a) => bus.publish('analysis', a), fetchImpl });
+  const slugs = new Map(dexList.map((p) => [p.n, p.i]));
+  const paragon2 = new Paragon2({ cfg, publish: (a) => bus.publish('analysis', a), fetchImpl, resolveSlug: (s) => slugs.get(s) ?? null });
   const store = new Store({
     state: migrate(loadJson(statePath, null)),
     ctx,
@@ -43,12 +44,12 @@ export async function createApp({ configDir = join(ROOT, 'config'), dataDir = jo
     onChange: (next, prev) => {
       const view = buildView(next, dex);
       bus.publish('state', view);
-      if (view.teamHash !== buildView(prev, dex).teamHash) paragon2.onTeamChange(view.teamHash, view.team.view);
+      if (view.teamHash !== teamHash(prev.team.members) || next.league !== prev.league) paragon2.onTeamChange(view.teamHash, view.team.view, next.league);
     },
   });
   const initial = buildView(store.state, dex);
   bus.publish('state', initial);
-  paragon2.onTeamChange(initial.teamHash, initial.team.view);
+  paragon2.onTeamChange(initial.teamHash, initial.team.view, initial.league);
 
   const spotify = new Spotify({
     cfg, secrets, fetchImpl,
@@ -103,7 +104,7 @@ export async function createApp({ configDir = join(ROOT, 'config'), dataDir = jo
         if (d) return send(res, d.status, { error: d.msg });
         const op = url.searchParams.get('op');
         if (!HOTKEY_OPS.has(op)) return send(res, 400, { error: `hotkey ops: ${[...HOTKEY_OPS].join(', ')}` });
-        try { store.apply({ op }); return send(res, 200, { ok: true }); } catch (e) { return fail(res, e); }
+        try { store.apply(op === 'league.set' ? { op, league: url.searchParams.get('league') } : { op }); return send(res, 200, { ok: true }); } catch (e) { return fail(res, e); }
       }
       let m;
       if ((m = p.match(/^\/sprite\/(\d{1,5})$/))) {

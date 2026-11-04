@@ -13,7 +13,7 @@ Twitch/OBS overlay toolkit for Pokémon GO PvP streams. Zero-dependency Node 22 
 
 ## Status
 
-v1 done (branch `feat/v1`). Read `docs/HANDOFF.md` first; it has the status, rulings, deferred minors and next work.
+v1 done and merged into `main`. Read `docs/HANDOFF.md` first; it has the status, rulings, deferred minors and next work.
 
 ## Decisions (don't re-litigate)
 

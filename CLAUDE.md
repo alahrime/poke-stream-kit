@@ -20,8 +20,8 @@ v1 done (branch `feat/v1`). Read `docs/HANDOFF.md` first; it has the status, rul
 - **No npm dependencies.** Node built-ins only (`http`, `fs`, `crypto`, `node:test`). Server→overlay push uses **SSE**, not WebSockets.
 - **One process, one port** (default `7878`, bind `127.0.0.1`). OBS browser sources point at `http://127.0.0.1:7878/overlay/<name>`.
 - **State** lives in `data/state.json` (gitignored, per-device). **Config + saved teams** live in `config/` (committed → portable). **Secrets** (Spotify refresh token) in `data/secrets.json` (gitignored).
-- **Pokédex is bundled** (`public/shared/dex.json`, built by `scripts/build-dex.mjs` from PokeAPI CSVs). Sprites hotlinked from PokeAPI's GitHub sprite repo.
-- **Set record** values are integers clamped to 0–5.
+- **Pokédex is bundled** (`public/shared/dex.json`, built by `scripts/build-dex.mjs` from PokeAPI CSVs). Sprites served via `/sprite/:id` (disk-cached proxy of PokeAPI's GitHub sprite repo).
+- **Set record**: integers 0–5 with wins + losses ≤ 5 (GBL set = 5 battles).
 - **Integrations** (Spotify, paragon2, future Twitch EventSub) live in `src/integrations/` and talk to the core only via the event bus (`src/server/bus.js`).
 
 ## Layout

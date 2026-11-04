@@ -3,7 +3,7 @@
 _Last updated: 2026-11-04_
 
 ## Status
-v1 is complete on branch `feat/v1`. `main` holds only the plan and CLAUDE.md, so merge `feat/v1` into `main` once you've looked it over.
+v1 is complete and merged into `main` (fast-forward from `feat/v1`).
 - 48/48 tests pass (`npm test`). Playwright end-to-end check passed: the control panel pushes live updates to the overlays, there are 0 console errors, and the phone layout has no horizontal scroll.
 - Process: Superpowers. The plan had 2 senior reviews, then the finished code had 2 final senior reviews. Every Critical/Important finding was fixed test-first.
 - Plan and review outcomes: `docs/plans/2026-11-04-overlay-kit-plan.md`

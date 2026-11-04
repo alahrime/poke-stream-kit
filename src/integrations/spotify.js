@@ -37,6 +37,8 @@ export class Spotify {
     this.access = null; // { token, exp }
     this.backoff = 0;
     this.timer = null;
+    this.refreshing = null; // single-flight refresh: rotated tokens must not be spent twice
+    this.ticking = false;
   }
 
   get clientId() { return this.cfg.spotify?.clientId ?? ''; }
@@ -44,6 +46,9 @@ export class Spotify {
   get refreshToken() { return this.secrets.spotify?.refreshToken ?? null; }
 
   loginUrl() {
+    const now = Date.now();
+    for (const [k, v] of this.pending) if (v.exp < now) this.pending.delete(k);
+    while (this.pending.size >= 20) this.pending.delete(this.pending.keys().next().value);
     const { verifier, challenge } = pkcePair();
     const state = randomBytes(16).toString('hex');
     this.pending.set(state, { verifier, exp: Date.now() + 10 * 60e3 });
@@ -71,7 +76,7 @@ export class Spotify {
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (json.error === 'invalid_grant') this.logout();
+      if (json.error === 'invalid_grant' && params.grant_type === 'refresh_token') this.logout();
       throw new Error(`token ${res.status} ${json.error ?? ''}`);
     }
     this.access = { token: json.access_token, exp: Date.now() + (json.expires_in - 60) * 1000 };
@@ -83,7 +88,9 @@ export class Spotify {
 
   async token() {
     if (!this.access || this.access.exp < Date.now()) {
-      await this.tokenRequest({ grant_type: 'refresh_token', refresh_token: this.refreshToken });
+      this.refreshing ??= this.tokenRequest({ grant_type: 'refresh_token', refresh_token: this.refreshToken })
+        .finally(() => { this.refreshing = null; });
+      await this.refreshing;
     }
     return this.access.token;
   }
@@ -100,6 +107,12 @@ export class Spotify {
   schedule(ms) { clearTimeout(this.timer); this.timer = setTimeout(() => this.tick(), ms); this.timer.unref?.(); }
 
   async tick() {
+    if (this.ticking) return; // a tick is already in flight; it will reschedule
+    this.ticking = true;
+    try { await this.poll(); } finally { this.ticking = false; }
+  }
+
+  async poll() {
     const pollMs = this.cfg.spotify?.pollMs ?? 5000;
     if (!this.clientId || !this.refreshToken) {
       this.publish({ status: this.clientId ? 'unauthed' : 'disabled', track: null, at: Date.now() });

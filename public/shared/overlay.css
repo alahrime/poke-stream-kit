@@ -15,6 +15,7 @@ body { font-family: var(--font); color: var(--text); -webkit-font-smoothing: ant
 
 .card {
   position: relative; background: var(--card); border-radius: 16px; padding: 12px 18px;
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 24px rgba(0,0,0,.35); /* fallback: OBS builds with CEF < 111 */
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent), 0 6px 24px rgba(0,0,0,.35);
   transition: box-shadow .6s ease;
 }

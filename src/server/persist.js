@@ -27,9 +27,17 @@ export function saveJsonAtomic(path, data) {
 }
 
 // Coalesces bursts of writes (e.g. rapid W/L clicks) into one write.
-export function debouncedSaver(path, ms = 150) {
+// A failed write (disk full, AV lock) is logged and retried; it must never crash a live stream.
+export function debouncedSaver(path, ms = 150, retryMs = 2000) {
   let timer = null, pending;
-  const flush = () => { clearTimeout(timer); timer = null; if (pending !== undefined) { saveJsonAtomic(path, pending); pending = undefined; } };
+  const flush = () => {
+    clearTimeout(timer); timer = null;
+    if (pending === undefined) return;
+    try { saveJsonAtomic(path, pending); pending = undefined; } catch (e) {
+      console.error(`[persist] could not save ${path}: ${e.message} (retrying)`);
+      timer = setTimeout(flush, retryMs);
+    }
+  };
   const save = (data) => { pending = data; if (!timer) timer = setTimeout(flush, ms); };
   save.flush = flush;
   return save;

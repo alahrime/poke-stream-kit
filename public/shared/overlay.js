@@ -97,17 +97,16 @@ const widgets = {
       card.append(art, meta);
       card.hidden = true;
       root.append(card);
-      let raf;
+      // Progress bar: animate only while playing and visible (OBS sources stay loaded for hours).
+      const bar = card.querySelector('.bar i');
+      const pctOf = (sp) => Math.min(100, ((sp.track.progressMs + (sp.status === 'playing' ? Date.now() - sp.at : 0)) / sp.track.durationMs) * 100);
       const tick = () => {
         const sp = card._sp;
-        if (sp?.track) {
-          const live = sp.status === 'playing' ? Date.now() - sp.at : 0;
-          const pct = Math.min(100, ((sp.track.progressMs + live) / sp.track.durationMs) * 100);
-          card.querySelector('.bar i').style.width = `${pct}%`;
-        }
-        raf = requestAnimationFrame(tick);
+        if (!sp?.track || card.hidden) { card._raf = null; return; }
+        bar.style.width = `${pctOf(sp).toFixed(1)}%`;
+        card._raf = sp.status === 'playing' ? requestAnimationFrame(tick) : null;
       };
-      raf = requestAnimationFrame(tick);
+      card._kick = () => { if (!card._raf) card._raf = requestAnimationFrame(tick); };
       return card;
     },
     update(card, { spotify }) {
@@ -116,6 +115,7 @@ const widgets = {
       const show = (spotify.status === 'playing' || spotify.status === 'paused') && spotify.track;
       card.hidden = !show;
       if (!show) return;
+      card._kick();
       card.classList.toggle('paused', spotify.status === 'paused');
       const t = spotify.track;
       if (card.querySelector('.title').textContent !== t.title) bump(card);

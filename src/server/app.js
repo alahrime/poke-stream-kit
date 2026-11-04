@@ -54,7 +54,7 @@ export async function createApp({ configDir = join(ROOT, 'config'), dataDir = jo
     cfg, secrets, fetchImpl,
     saveSecrets: (s) => saveJsonAtomic(secretsPath, s),
     publish: (d) => bus.publish('spotify', d),
-    hasListeners: () => bus.size > 0,
+    hasListeners: () => bus.overlayCount > 0,
   });
   bus.publish('spotify', { status: cfg.spotify?.clientId ? (spotify.refreshToken ? 'idle' : 'unauthed') : 'disabled', track: null, at: Date.now() });
   spotify.start();

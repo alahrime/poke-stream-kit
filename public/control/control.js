@@ -178,7 +178,7 @@ $('sources').replaceChildren(...SOURCES.map(([n, w, h, note]) => {
 dex = await (await fetch('/shared/dex.json')).json();
 dexById = new Map(dex.map((p) => [p.i, p]));
 loadPresets();
-const es = new EventSource('/events');
+const es = new EventSource('/events?role=control');
 es.onopen = () => $('conn').classList.add('on');
 es.onerror = () => $('conn').classList.remove('on');
 es.addEventListener('state', (e) => { state = JSON.parse(e.data); render(); });

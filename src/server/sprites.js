@@ -1,11 +1,14 @@
 // /sprite/:id — disk-cached proxy over PokeAPI's sprite repo with a fallback chain.
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const RAW = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 const PLACEHOLDER = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="#fff" fill-opacity=".15" stroke="#fff" stroke-opacity=".5" stroke-width="4"/><path d="M8 48h80" stroke="#fff" stroke-opacity=".5" stroke-width="4"/><circle cx="48" cy="48" r="10" fill="#fff" fill-opacity=".6"/></svg>',
 );
+
+const SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+export const isCompletePng = (b) => b.length > 20 && b.subarray(0, 8).equals(SIG) && b.subarray(-8, -4).toString('latin1') === 'IEND';
 
 export function spriteUrls(id, speciesId, style = 'home') {
   const ids = speciesId && speciesId !== id ? [id, speciesId] : [id];
@@ -23,7 +26,7 @@ export class Sprites {
   async get(id) {
     const style = this.cfg.sprites?.style ?? 'home';
     const file = join(this.dir, `${style}-${id}.png`);
-    try { return { type: 'image/png', body: await readFile(file) }; } catch {}
+    try { const body = await readFile(file); if (isCompletePng(body)) return { type: 'image/png', body }; } catch {}
     if ((this.misses.get(id) ?? 0) > Date.now()) return { type: 'image/svg+xml', body: PLACEHOLDER, temp: true };
     if (!this.inflight.has(id)) this.inflight.set(id, this.download(id, style, file).finally(() => this.inflight.delete(id)));
     return this.inflight.get(id);
@@ -35,8 +38,11 @@ export class Sprites {
         const res = await this.fetch(url, { signal: AbortSignal.timeout(5000) });
         if (!res.ok) continue;
         const body = Buffer.from(await res.arrayBuffer());
+        if (!isCompletePng(body)) continue;
         await mkdir(this.dir, { recursive: true });
-        await writeFile(file, body);
+        const tmp = `${file}.${process.pid}.tmp`;
+        await writeFile(tmp, body);
+        await rename(tmp, file); // atomic: never serve a half-written sprite
         return { type: 'image/png', body };
       } catch {}
     }

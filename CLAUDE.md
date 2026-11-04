@@ -11,6 +11,10 @@ Twitch/OBS overlay toolkit for Pokémon GO PvP streams. Zero-dependency Node 22 
 * If we switch tasks, suggest / compact or a new session.
 * Short responses, by default.
 
+## Status
+
+v1 done (branch `feat/v1`). Read `docs/HANDOFF.md` first; it has the status, rulings, deferred minors and next work.
+
 ## Decisions (don't re-litigate)
 
 - **No npm dependencies.** Node built-ins only (`http`, `fs`, `crypto`, `node:test`). Server→overlay push uses **SSE**, not WebSockets.

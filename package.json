@@ -1,0 +1,13 @@
+{
+  "name": "poke-stream-kit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "OBS overlay kit for Pokémon GO PvP streams",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "test": "node --test test/",
+    "build:dex": "node scripts/build-dex.mjs"
+  }
+}

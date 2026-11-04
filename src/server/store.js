@@ -58,7 +58,7 @@ export function teamHash(members) {
   return members.map((m) => `${m.id}${m.shadow ? 's' : ''}`).join('.');
 }
 
-function parseMembers(members, ctx) {
+export function parseMembers(members, ctx) {
   if (!Array.isArray(members) || members.length > 3) throw invalid('team must have 0-3 members');
   return members.map((m) => {
     if (!isInt(m?.id, 1, 99999) || !ctx.hasPokemon(m.id)) throw invalid(`unknown pokemon id ${m?.id}`);

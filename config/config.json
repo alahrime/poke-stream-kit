@@ -1,0 +1,9 @@
+{
+  "port": 7878,
+  "host": "127.0.0.1",
+  "allowedHosts": [],
+  "controlToken": "",
+  "spotify": { "clientId": "", "pollMs": 5000 },
+  "paragon2": { "url": "", "timeoutMs": 3000 },
+  "sprites": { "style": "home" }
+}

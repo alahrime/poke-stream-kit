@@ -1,0 +1,71 @@
+:root {
+  --accent: #7c5cff;
+  --accent-2: #2ad4c4;
+  --card: rgba(14, 16, 24, 0.78);
+  --text: #f5f7ff;
+  --muted: #aab0c6;
+  --win: #3ddc84;
+  --loss: #ff5a6a;
+  --font: "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+}
+html, body { margin: 0; background: transparent; overflow: hidden; }
+body { font-family: var(--font); color: var(--text); -webkit-font-smoothing: antialiased; }
+#root { display: flex; flex-direction: column; gap: 12px; padding: 10px; align-items: flex-start; }
+[hidden] { display: none !important; }
+
+.card {
+  position: relative; background: var(--card); border-radius: 16px; padding: 12px 18px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent), 0 6px 24px rgba(0,0,0,.35);
+  transition: box-shadow .6s ease;
+}
+.card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: background .6s ease;
+}
+.label { font-size: 13px; letter-spacing: .18em; color: var(--muted); font-weight: 700; }
+.big { font-size: 52px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); font-size: 15px; }
+.bump { animation: bump .45s ease; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+.elo { min-width: 180px; }
+.delta { font-size: 18px; font-weight: 700; color: var(--muted); min-height: 22px; }
+.delta.up { color: var(--win); } .delta.down { color: var(--loss); }
+
+.record { min-width: 180px; }
+.pips { display: flex; gap: 6px; margin-top: 6px; }
+.pips i { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,.15); }
+.pips i.w { background: var(--win); } .pips i.l { background: var(--loss); }
+.sets { font-size: 14px; color: var(--muted); margin-top: 6px; min-height: 17px; }
+
+.team { display: flex; gap: 10px; padding: 12px; }
+.mon { width: 124px; text-align: center; }
+.mon img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.mon.shadow img { filter: drop-shadow(0 0 8px #a040ff) drop-shadow(0 0 3px #6b1fb3); }
+.mon .name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.types { display: flex; gap: 4px; justify-content: center; margin-top: 4px; }
+.type { font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+
+.analysis .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.analysis .type { font-size: 13px; padding: 3px 10px; }
+.analysis .notes { font-size: 13px; color: var(--muted); margin-top: 4px; max-width: 380px; }
+
+.spotify { display: flex; gap: 12px; align-items: center; width: 440px; box-sizing: border-box; }
+.spotify.paused { opacity: .6; }
+.spotify .art { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; }
+.spotify .meta { flex: 1; min-width: 0; }
+.spotify .title { font-weight: 800; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify .artist { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify .bar { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.spotify .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+/* Full-screen type-themed background: put it at the bottom of an OBS scene. */
+body.full #root { padding: 0; }
+.bg { position: fixed; inset: 0; background: #0b0d14; overflow: hidden; }
+.bg i { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(120px); opacity: .55; transition: background 1.2s ease; animation: drift 24s ease-in-out infinite alternate; }
+.bg .b1 { background: var(--accent); left: -20vmax; top: -25vmax; }
+.bg .b2 { background: var(--accent-2); right: -20vmax; bottom: -25vmax; animation-delay: -12s; }
+@keyframes drift { to { transform: translate(10vmax, 8vmax) scale(1.15); } }
+
+/* Combined scene: right-side column on a 1920x1080 canvas. */
+body.scene #root { position: fixed; top: 24px; right: 24px; align-items: flex-end; }

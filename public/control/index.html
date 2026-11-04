@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stream Control</title>
+<link rel="stylesheet" href="/control/control.css">
+</head>
+<body>
+<header>
+  <h1><span id="conn" class="dot" title="connection"></span> Stream Control</h1>
+  <button id="session" class="ghost">Start stream</button>
+</header>
+
+<main>
+  <section class="panel" id="p-record">
+    <h2>Set record <small>keys: W / L / E · Ctrl+Z</small></h2>
+    <div class="score" id="score">0 - 0</div>
+    <div class="row big-buttons">
+      <button id="win" class="win">Win</button>
+      <button id="loss" class="loss">Loss</button>
+    </div>
+    <div class="row">
+      <button id="endSet">End set</button>
+      <button id="undo" class="ghost">Undo</button>
+    </div>
+    <ol id="history" class="history"></ol>
+  </section>
+
+  <section class="panel" id="p-elo">
+    <h2>ELO</h2>
+    <div class="elo-now"><span id="eloNow">—</span> <span id="eloDelta" class="delta"></span></div>
+    <form id="eloForm" class="row">
+      <input id="eloInput" type="number" inputmode="numeric" min="0" max="9999" placeholder="New rating" required>
+      <button>Set</button>
+    </form>
+  </section>
+
+  <section class="panel" id="p-team">
+    <h2>Active team</h2>
+    <div class="slots" id="slots"></div>
+    <div class="search">
+      <input id="search" type="search" placeholder="Search Pokémon… (e.g. galarian stun, #184)" autocomplete="off" aria-label="Search Pokémon">
+      <ul id="results" class="results" role="listbox"></ul>
+    </div>
+    <div class="row presets">
+      <select id="presetSelect" aria-label="Saved teams"><option value="">Saved teams…</option></select>
+      <button id="presetLoad">Load</button>
+      <button id="presetDelete" class="ghost">Delete</button>
+    </div>
+    <form id="presetForm" class="row">
+      <input id="presetName" placeholder="Save current team as…" maxlength="40" required>
+      <button>Save</button>
+    </form>
+  </section>
+
+  <section class="panel" id="p-spotify">
+    <h2>Spotify</h2>
+    <p id="spotifyStatus" class="muted">…</p>
+    <div class="row">
+      <a id="spotifyLogin" class="button" href="/spotify/login" target="_blank" rel="noopener">Connect Spotify</a>
+      <button id="spotifyLogout" class="ghost">Disconnect</button>
+    </div>
+  </section>
+
+  <section class="panel" id="p-obs">
+    <h2>OBS browser sources</h2>
+    <table class="sources" id="sources"></table>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="/control/control.js"></script>
+</body>
+</html>
